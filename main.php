@@ -16,6 +16,42 @@ function headersSet()
     ];
 }
 
+function robotEdit()
+{
+    $uri = "http://localhost:8080/api/robot/schedule/edit";
+    $headers = headersSet();
+
+    $client = HttpClient::create();
+
+    $obj = [
+        'bot_id' => 99,
+        'agent' => 'bot/1.0',
+        'delay' => 1,
+        'ignore_query' => true,
+        'import_sitemaps' => true,
+        'retry_max' => 5,
+        'start_time' => '13:00',
+    ];
+
+    $response = $client->request('PUT', $uri, [
+        'headers' => $headers,
+        'max_redirects' => 1,
+        'json' => [ $obj ],
+    ]);
+
+    $statusCode = $response->getStatusCode();
+    try {
+        $content = $response->getContent();
+    } catch (Exception $e) {
+        echo "Error : ($statusCode) " . $e->getMessage() . "\n";
+        return false;
+    }
+
+    $jsonContent = json_decode($content, false);
+    var_dump($jsonContent);
+    return true;
+}
+
 function robotSchedule()
 {
     $uri = "http://localhost:8080/api/robot/schedule";
@@ -79,7 +115,8 @@ function robotList()
 
 function main($args)
 {
-//    robotSchedule();
+    robotSchedule();
+    robotEdit();
     robotList();
 
     return 0;
