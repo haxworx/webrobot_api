@@ -47,8 +47,7 @@ function robotEdit(int $botId)
         return false;
     }
 
-    $jsonContent = json_decode($content, false);
-    var_dump($jsonContent);
+    $o = json_decode($content, false);
     return true;
 }
 
@@ -144,7 +143,6 @@ function robotList()
     }
 
     $o = json_decode($content, false);
-    var_dump($o);
 
     return true;
 }
