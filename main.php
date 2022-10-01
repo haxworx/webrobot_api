@@ -16,7 +16,7 @@ function headersSet()
     ];
 }
 
-function robotEdit()
+function robotEdit(int $botId)
 {
     $uri = "http://localhost:8080/api/robot/schedule/edit";
     $headers = headersSet();
@@ -24,16 +24,16 @@ function robotEdit()
     $client = HttpClient::create();
 
     $obj = [
-        'bot_id' => 99,
+        'bot_id' => $botId,
         'agent' => 'bot/1.0',
         'delay' => 1,
         'ignore_query' => true,
         'import_sitemaps' => true,
         'retry_max' => 5,
-        'start_time' => '13:00',
+        'start_time' => '14:00',
     ];
 
-    $response = $client->request('PUT', $uri, [
+    $response = $client->request('PATCH', $uri, [
         'headers' => $headers,
         'max_redirects' => 1,
         'json' => [ $obj ],
@@ -83,9 +83,45 @@ function robotSchedule()
         return false;
     }
 
-    $jsonContent = json_decode($content, false);
-    var_dump($jsonContent);
-    return true;
+    $o = json_decode($content, true);
+    if ((array_key_exists('message', $o)) && ($o['message'] === 'ok')) {
+        if (array_key_exists('bot_id', $o)) {
+            return intval($o['bot_id']);
+        }
+    }
+    return false;
+}
+
+function robotDelete($botId)
+{
+    $uri = "http://localhost:8080/api/robot/schedule/remove";
+    $headers = headersSet();
+    $client = HttpClient::create();
+
+    $obj = [
+        'bot_id' => $botId,
+    ];
+
+    $response = $client->request('DELETE', $uri, [
+        'headers' => $headers,
+        'max_redirects' => 1,
+        'json' => [ $obj ],
+    ]);
+
+    $statusCode = $response->getStatusCode();
+    try {
+        $content = $response->getContent();
+    } catch (Exception $e) {
+        echo "Error: ($statusCode) " . $e->getMessage() . "\n";
+        return false;
+    }
+
+    $o = json_decode($content, true);
+    if ((array_key_exists('message', $o)) && ($o['message'] === 'ok')) {
+        return true;
+    }
+
+    return false;
 }
 
 function robotList()
@@ -107,16 +143,29 @@ function robotList()
         return false;
     }
 
-    $jsonContent = json_decode($content, false);
-    var_dump($jsonContent);
+    $o = json_decode($content, false);
+    var_dump($o);
 
     return true;
 }
 
 function main($args)
 {
-    robotSchedule();
-    robotEdit();
+    if (($botId = robotSchedule()) !== false) {
+        echo "Robot scheduled\n";
+    } else {
+        return 1;
+    }
+    if ((robotEdit($botId)) === true) {
+        echo "Robot edited!\n";
+    } else {
+        return 1;
+    }
+    if ((robotDelete($botId)) === true) {
+        echo "Robot deleted!\n";
+    } else {
+        return 1;
+    }
     robotList();
 
     return 0;
