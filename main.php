@@ -125,7 +125,7 @@ function robotDelete($botId)
 
 function robotList()
 {
-    $uri = "http://localhost:8080/api/robot/";
+    $uri = "http://localhost:8080/api/robot/query/all";
     $headers = headersSet();
     $client = HttpClient::create();
 
@@ -142,9 +142,43 @@ function robotList()
         return false;
     }
 
+    $ids = [];
     $o = json_decode($content, false);
+    foreach ($o as $bot) {
+        $ids[] = $bot->botId;
+    }
 
-    return true;
+    return $ids;
+}
+
+function robotLaunches(int $botId)
+{
+    $uri = "http://localhost:8080/api/robot/query/launches";
+    $headers = headersSet();
+    $client = HttpClient::create();
+
+    $obj = [
+        'bot_id' => $botId,
+    ];
+
+    $response = $client->request('GET', $uri, [
+        'headers' => $headers,
+        'max_redirects' => 1,
+        'json' => [ $obj ],
+    ]);
+
+    $statusCode = $response->getStatusCode();
+    try {
+        $content = $response->getContent();
+    } catch (Exception $e) {
+        echo "Error : ($statusCode) " . $e->getMessage() . "\n";
+        return false;
+    }
+
+    $o = json_decode($content, false);
+    var_dump($o);
+
+    return $o;
 }
 
 function main($args)
@@ -164,7 +198,14 @@ function main($args)
     } else {
         return 1;
     }
-    robotList();
+    if (($bots = robotList()) !== false) {
+        foreach ($bots as $botId) {
+            echo "$botId\n";
+            robotLaunches($botId);
+        }
+    } else {
+        return 1;
+    }
 
     return 0;
 }
