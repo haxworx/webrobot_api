@@ -176,13 +176,61 @@ function robotLaunches(int $botId)
     }
 
     $o = json_decode($content, false);
-    var_dump($o);
+
+    return $o;
+}
+
+function robotRecords(int $botId, int $launchId)
+{
+    $uri = "http://localhost:8080/api/robot/records/$botId/launch/$launchId/offset/0";
+    $headers = headersSet();
+    $client = HttpClient::create();
+
+    $response = $client->request('GET', $uri, [
+        'headers' => $headers,
+        'max_redirects' => 1,
+    ]);
+
+    $statusCode = $response->getStatusCode();
+    try {
+        $content = $response->getContent();
+    } catch (Exception $e) {
+        echo "Error: ($statusCode) " . $e->getMessage() . "\n";
+        return false;
+    }
+
+    $o = json_decode($content, false);
+
+    return $o;
+}
+
+function robotRecord(int $botId, int $recordId)
+{
+    $uri = "http://localhost:8080/api/robot/records/download/$botId/record/$recordId";
+    $headers = headersSet();
+    $client = HttpClient::create();
+
+    $response = $client->request('GET', $uri, [
+        'headers' => $headers,
+        'max_redirects' => 1,
+    ]);
+
+    $statusCode = $response->getStatusCode();
+    try {
+        $content = $response->getContent();
+    } catch (Exception $e) {
+        echo "Error: ($statusCode) " . $e->getMessage() . "\n";
+        return false;
+    }
+
+    $o = json_decode($content, false);
 
     return $o;
 }
 
 function main($args)
 {
+    $launches = [];
     if (($botId = robotSchedule()) !== false) {
         echo "Robot scheduled\n";
     } else {
@@ -201,10 +249,24 @@ function main($args)
     if (($bots = robotList()) !== false) {
         foreach ($bots as $botId) {
             echo "$botId\n";
-            robotLaunches($botId);
+            $l = robotLaunches($botId);
+            $launches[] = $l;
         }
     } else {
         return 1;
+    }
+
+    foreach ($launches as $launch) {
+        $launchId = $launch->id;
+        $botId = $launch->botId;
+        echo "$launchId $botId\n";
+        $records = robotRecords($botId, $launchId);
+        foreach ($records as $record) {
+            $o = robotRecord($botId, $record->id);
+            var_dump($o);
+            break;
+        }
+        break;
     }
 
     return 0;
