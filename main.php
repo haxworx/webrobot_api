@@ -24,13 +24,13 @@ function robotEdit(int $botId)
     $client = HttpClient::create();
 
     $obj = [
-        'bot_id' => $botId,
+        'botId' => $botId,
         'agent' => 'bot/1.0',
         'delay' => 1,
-        'ignore_query' => true,
-        'import_sitemaps' => true,
-        'retry_max' => 5,
-        'start_time' => '14:00',
+        'ignoreQuery' => true,
+        'importSitemaps' => true,
+        'retryMax' => 5,
+        'startTime' => '14:00',
     ];
 
     $response = $client->request('PATCH', $uri, [
@@ -62,10 +62,10 @@ function robotSchedule()
         'address' => 'http://google.com',
         'agent' => 'bot/1.0',
         'delay' => 1,
-        'ignore_query' => true,
-        'import_sitemaps' => true,
-        'retry_max' => 5,
-        'start_time' => '13:00',
+        'ignoreQuery' => true,
+        'importSitemaps' => true,
+        'retryMax' => 5,
+        'startTime' => '13:00',
     ];
 
     $response = $client->request('POST', $uri, [
@@ -82,10 +82,10 @@ function robotSchedule()
         return false;
     }
 
-    $o = json_decode($content, true);
-    if ((array_key_exists('message', $o)) && ($o['message'] === 'ok')) {
-        if (array_key_exists('bot_id', $o)) {
-            return intval($o['bot_id']);
+    $o = json_decode($content, false);
+    if ((isset($o->message)) && ($o->message === 'ok')) {
+        if (isset($o->botId)) {
+            return intval($o->botId);
         }
     }
     return false;
@@ -98,7 +98,7 @@ function robotDelete($botId)
     $client = HttpClient::create();
 
     $obj = [
-        'bot_id' => $botId,
+        'botId' => $botId,
     ];
 
     $response = $client->request('DELETE', $uri, [
@@ -115,8 +115,8 @@ function robotDelete($botId)
         return false;
     }
 
-    $o = json_decode($content, true);
-    if ((array_key_exists('message', $o)) && ($o['message'] === 'ok')) {
+    $o = json_decode($content, false);
+    if ((isset($o->message)) && ($o->message === 'ok')) {
         return true;
     }
 
@@ -158,7 +158,7 @@ function robotLaunches(int $botId)
     $client = HttpClient::create();
 
     $obj = [
-        'bot_id' => $botId,
+        'botId' => $botId,
     ];
 
     $response = $client->request('GET', $uri, [
